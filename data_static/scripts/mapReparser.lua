@@ -11,6 +11,34 @@ local heightOffSet = 300
 local objFlags = {}
 objFlags.__index = objFlags
 
+---@class ReparserSettings
+---@field newSpawnPoints boolean
+---@field RespawnOnComplete boolean
+---@field spawnRadius number
+---@field spawnMenuHeader string
+---@field credit string
+---@field zeroG boolean
+---@field defaultTimeOfDay number
+---@field progressBar boolean
+local ReparserSettings = {}
+ReparserSettings.__index = ReparserSettings
+
+---@return ReparserSettings
+function NewReparserSettings()
+	local instance = setmetatable({}, ReparserSettings)
+
+	instance.newSpawnPoints = false
+	instance.RespawnOnComplete = false
+	instance.spawnRadius = 6.5
+	instance.spawnMenuHeader = "<b>- Teleport -"
+	instance.credit = "<b>Map made by " .. tm.players.GetPlayerName(0)
+	instance.zeroG = false
+	instance.defaultTimeOfDay = -1
+	instance.progressBar = false
+
+	return instance
+end
+
 ---@type table
 local newMap = {}
 
@@ -71,8 +99,8 @@ function GetMaterial()
 
     tm.playerUI.SetUIValue(0, "Progress", tostring(textureIndex) .. "/" .. tostring(#newMap["custom textures"]))
 
-    local PlayerPos = tm.players.GetPlayerTransform(0).GetPosition()
-    tm.physics.AddTexture(newMap["custom textures"][textureIndex], tostring(textureIndex))
+    local PlayerPos = tm.players.GetPlayerTransform(0).GetPositionWorld()
+    tm.physics.AddTexture("assets/" .. newMap["custom textures"][textureIndex], tostring(textureIndex))
     local obj = tm.physics.SpawnCustomObject(PlayerPos + tm.vector3.Create(0, 5, 0), "", tostring(textureIndex))
     obj.GetTransform().SetScale(3)
     obj.SetIsTrigger(true)
@@ -80,16 +108,9 @@ end
 
 
 function FinalizeMapFolder()
-    tm.os.WriteAllText_Dynamic(newMap["name"] .. "/main.lua", tm.os.ReadAllText_Static("scripts/mapLoader.lua"))
-
-    --for index, mesh in ipairs(newMap["custom meshes"]) do
-        --tm.os.WriteAllText_Dynamic(newMap["name"] .. "/" .. mesh, tm.os.ReadAllText_Static("assets/" .. mesh))
-    --end
-
-    --for index, texture in ipairs(newMap["custom textures"]) do
-        --tm.os.WriteAllText_Dynamic(newMap["name"] .. "/" .. texture, tm.os.ReadAllText_Static("assets/" .. texture))
-        --tm.os.Log(tm.os.ReadAllText_Static("assets/" .. texture))
-    --end
+	local loader = tm.os.ReadAllText_Static("scripts/mapLoader.lua")
+	loader = ResolveMarcos(loader, {"SPAWN"})
+    tm.os.WriteAllText_Dynamic(newMap["name"] .. "/main.lua", loader)
 end
 
 

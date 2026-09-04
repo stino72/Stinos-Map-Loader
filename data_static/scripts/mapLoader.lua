@@ -1,8 +1,10 @@
+--![SPAWN]~
 ---@class spawnPoint
 ---@field p table
 ---@field r table
 local spawnPoint = {}
 spawnPoint.__index = spawnPoint
+--END
 
 ---@class objectFlags
 ---@field isStatic boolean
@@ -16,8 +18,10 @@ objectFlags.__index = objectFlags
 
 local isLoading = false
 
+--![SPAWN]~
 ---@type spawnPoint
 local spawn
+--END
 
 local objectBuffer = {}
 
@@ -32,10 +36,12 @@ local material = {}
 
 tm.os.SetModTargetDeltaTime(1/60)
 
+--![SPAWN]~
 ---@param player ModPlayer
 function OnPlayerJoined(player)
     SetSpawnPoint(player)
 end
+--END
 
 function update()
     UpdateMapLoader()
@@ -44,7 +50,9 @@ end
 function LoadMap()
     isLoading = true
     local map = json.parse(tm.os.ReadAllText_Static("map.json"))
+--![SPAWN]~
     spawn = map["spawn"]
+--END
 
     objectBuffer = map["objects"]
 
@@ -74,16 +82,17 @@ end
 function LoadTextures(textures)
     for index, texture in ipairs(textures) do
         tm.physics.AddTexture(texture, "t" .. tostring(index))
-    end    
+    end
 end
 
-
+--![SPAWN]~
 ---@param player ModPlayer
 function SetSpawnPoint(player)
     tm.players.SetSpawnPoint(player.playerId, "main", TableToVector(spawn.p), TableToVector(spawn.r))
     tm.players.SetPlayerSpawnLocation(player.playerId, "main");
     tm.players.TeleportPlayerToSpawnPoint(player.playerId, "main", true);
-end 
+end
+--END
 
 
 function UpdateMapLoader()
@@ -99,7 +108,7 @@ function UpdateMapLoader()
 
         ---@type objectFlags
         local flags = object["i"]
-        
+
         ---@type ModGameObject
         local obj
 
@@ -112,7 +121,7 @@ function UpdateMapLoader()
         else
             obj = tm.physics.SpawnObject(TableToVector(object["p"]), object["n"])
         end
-        
+
         obj.GetTransform().SetRotation(TableToVector(object["r"]))
         obj.GetTransform().SetScale(TableToVector(object["s"]))
 
@@ -136,8 +145,10 @@ end
 ---@return ModVector3
 function TableToVector(table)
     return tm.vector3.Create(table.x, table.y, table.z)
-end 
+end
 
+--![SPAWN]~
 tm.players.OnPlayerJoined.add(OnPlayerJoined)
+--END
 
 LoadMap()

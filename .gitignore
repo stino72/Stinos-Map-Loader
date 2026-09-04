@@ -1,1 +1,6 @@
 .vscode/settings.json
+.luarc.json
+
+data_dynamic_willNotBeUploadedToWorkshop/*
+.Custom Models.*
+data_static/Map
