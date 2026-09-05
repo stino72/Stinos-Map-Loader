@@ -1,3 +1,7 @@
+--[SPAWN]~
+tm.os.DoFile("spawn_points")
+--END
+
 --![SPAWN]~
 ---@class spawnPoint
 ---@field p table
@@ -34,121 +38,139 @@ local customObjectPhysicsIndice = 0
 
 local material = {}
 
+--[LOAD]~
+local loadmsg = tm.playerUI.AddSubtleMessageForPlayer(0, "Loading Map, Please Wait", "Loading Assets", 9999)
+--END
+
 tm.os.SetModTargetDeltaTime(1/60)
 
 --![SPAWN]~
 ---@param player ModPlayer
 function OnPlayerJoined(player)
-    SetSpawnPoint(player)
+	SetSpawnPoint(player)
 end
 --END
-
-function update()
-    UpdateMapLoader()
-end
 
 function LoadMap()
-    isLoading = true
-    local map = json.parse(tm.os.ReadAllText_Static("map.json"))
+	isLoading = true
+	local map = json.parse(tm.os.ReadAllText_Static("map.json"))
 --![SPAWN]~
-    spawn = map["spawn"]
+	spawn = map["spawn"]
 --END
 
-    objectBuffer = map["objects"]
+	objectBuffer = map["objects"]
 
-    material = map["materials"]
+	material = map["materials"]
 
-    customObjectIndice = map["custom objects indice"]
+	customObjectIndice = map["custom objects indice"]
 
-    customObjectCollisionIndice = map["custom objects collision indice"]
+	customObjectCollisionIndice = map["custom objects collision indice"]
 
-    customObjectPhysicsIndice = map["custom objects physics indice"]
+	customObjectPhysicsIndice = map["custom objects physics indice"]
 
-    objectCount = #objectBuffer
+	objectCount = #objectBuffer
 
-    LoadMeshes(map["custom meshes"])
-    LoadTextures(map["custom textures"])
+	LoadMeshes(map["custom meshes"])
+	LoadTextures(map["custom textures"])
 end
 
 ---@param meshes table
 function LoadMeshes(meshes)
-    for index, mesh in ipairs(meshes) do
-        tm.physics.AddMesh(mesh, tostring(index))
-    end
+	for index, mesh in ipairs(meshes) do
+		tm.physics.AddMesh(mesh, tostring(index))
+	end
 end
 
 
 ---@param textures table
 function LoadTextures(textures)
-    for index, texture in ipairs(textures) do
-        tm.physics.AddTexture(texture, "t" .. tostring(index))
-    end
+	for index, texture in ipairs(textures) do
+		tm.physics.AddTexture(texture, "t" .. tostring(index))
+	end
+end
+
+
+function update()
+	if not isLoading then
+		return
+	end
+
+	local LoadAmount = math.min(#objectBuffer, 15)
+	for i = 1, LoadAmount, 1 do
+		objectIndex = objectIndex + 1
+
+		local object = objectBuffer[1]
+
+		---@type objectFlags
+		local flags = object["i"]
+
+		---@type ModGameObject
+		local obj
+
+		if objectIndex < customObjectIndice then
+			obj = tm.physics.SpawnCustomObject(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), material[flags.textureId])
+		elseif objectIndex < customObjectCollisionIndice then
+			obj = tm.physics.SpawnCustomObjectConcave(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), material[flags.textureId])
+		elseif objectIndex < customObjectPhysicsIndice then
+			obj = tm.physics.SpawnCustomObjectRigidbody(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), flags.weight == 0, flags.weight, material[flags.textureId])
+		else
+			obj = tm.physics.SpawnObject(TableToVector(object["p"]), object["n"])
+		end
+
+		obj.GetTransform().SetRotation(TableToVector(object["r"]))
+		obj.GetTransform().SetScale(TableToVector(object["s"]))
+
+		obj.SetIsStatic(flags.isStatic)
+		if not flags.canCollide then
+			obj.SetIsTrigger(true);
+		end
+		obj.SetIsVisible(flags.isVisible)
+
+		table.remove(objectBuffer, 1)
+	end
+--[LOAD]~
+	tm.playerUI.SubtleMessageUpdateMessageForPlayer(0, loadmsg, "Placing Objects " .. objectIndex .. "/" .. objectCount)
+--END
+
+	if objectIndex == objectCount then
+		tm.playerUI.AddSubtleMessageForAllPlayers("Map Loaded")
+--[LOAD]~
+		tm.playerUI.RemoveSubtleMessageForPlayer(0, loadmsg)
+--END
+--[ZEROG]~
+		tm.physics.SetGravityMultiplier(1)
+--END
+--[RESPAWN]~
+		Respawn_all_players()
+--END
+		isLoading = false
+	end
 end
 
 --![SPAWN]~
 ---@param player ModPlayer
 function SetSpawnPoint(player)
-    tm.players.SetSpawnPoint(player.playerId, "main", TableToVector(spawn.p), TableToVector(spawn.r))
-    tm.players.SetPlayerSpawnLocation(player.playerId, "main");
-    tm.players.TeleportPlayerToSpawnPoint(player.playerId, "main", true);
+	tm.players.SetSpawnPoint(player.playerId, "main", TableToVector(spawn.p), TableToVector(spawn.r))
+	tm.players.SetPlayerSpawnLocation(player.playerId, "main");
+	tm.players.TeleportPlayerToSpawnPoint(player.playerId, "main", true);
 end
 --END
-
-
-function UpdateMapLoader()
-    if not isLoading then
-        return
-    end
-
-    local LoadAmount = math.min(#objectBuffer, 15)
-    for i = 1, LoadAmount, 1 do
-        objectIndex = objectIndex + 1
-
-        local object = objectBuffer[1]
-
-        ---@type objectFlags
-        local flags = object["i"]
-
-        ---@type ModGameObject
-        local obj
-
-        if objectIndex < customObjectIndice then
-            obj = tm.physics.SpawnCustomObject(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), material[flags.textureId])
-        elseif objectIndex < customObjectCollisionIndice then
-            obj = tm.physics.SpawnCustomObjectConcave(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), material[flags.textureId])
-        elseif objectIndex < customObjectPhysicsIndice then
-            obj = tm.physics.SpawnCustomObjectRigidbody(TableToVector(object["p"]), tostring(flags.modelId), "t" .. tostring(flags.textureId), flags.weight == 0, flags.weight, material[flags.textureId])
-        else
-            obj = tm.physics.SpawnObject(TableToVector(object["p"]), object["n"])
-        end
-
-        obj.GetTransform().SetRotation(TableToVector(object["r"]))
-        obj.GetTransform().SetScale(TableToVector(object["s"]))
-
-        obj.SetIsStatic(flags.isStatic)
-        if not flags.canCollide then
-            obj.SetIsTrigger(true);
-        end
-        obj.SetIsVisible(flags.isVisible)
-
-        table.remove(objectBuffer, 1)
-    end
-
-    if objectIndex == objectCount then
-        tm.playerUI.AddSubtleMessageForAllPlayers("Map Loaded")
-        isLoading = false
-    end
-end
-
 
 ---@param table table
 ---@return ModVector3
 function TableToVector(table)
-    return tm.vector3.Create(table.x, table.y, table.z)
+	return tm.vector3.Create(table.x, table.y, table.z)
 end
 
 --![SPAWN]~
 tm.players.OnPlayerJoined.add(OnPlayerJoined)
+--END
+--[ZEROG]~
+tm.physics.SetGravityMultiplier(0)
+--END
+--[TIME]~
+local time = 0
+tm.world.SetTimeOfDay(time)
 --END
 
 LoadMap()
