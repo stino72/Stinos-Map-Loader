@@ -90,7 +90,10 @@ function GetMaterial()
 
     if textureIndex > #newMap["custom textures"] then
         tm.playerUI.ClearUI(0)
-        FinalizeMapFolder()
+		tm.playerUI.AddUILabel(0, "l", "Finalizing map...")
+		tm.playerUI.AddUILabel(0, "i", "map will be saved to")
+		tm.playerUI.AddUILabel(0, "i", "data_dynamic/" .. newMap["name"] .. "/")
+		timer.Create(0.02, FinalizeMapFolder)
         return
     end
 
@@ -116,11 +119,19 @@ function FinalizeMapFolder()
 
 	if s.newSpawnPoints then
 		table.insert(flags, "SPAWN")
+		local spawn_flag = {}
 
 		local spawnPoints = tm.os.ReadAllText_Static("scripts/spawn_points.lua")
 		spawnPoints = SetVariable(spawnPoints, "spawnRadius", s.spawnRadius)
-		spawnPoints = SetVariable(spawnPoints, "header", '"' .. s.spawnMenuHeader .. '"')
-		spawnPoints = SetVariable(spawnPoints, "credit", '"' .. s.credit .. '"')
+		if s.spawnMenuHeader != "" then
+			table.insert(spawn_flag, "HEADER")
+			spawnPoints = SetVariable(spawnPoints, "header", '"' .. s.spawnMenuHeader .. '"')
+		end
+		if s.credit != "" then
+			table.insert(spawn_flag, "CREDIT")
+			spawnPoints = SetVariable(spawnPoints, "credit", '"' .. s.credit .. '"')
+		end
+		spawnPoints = ResolveMarcos(spawnPoints, spawn_flag)
 		tm.os.WriteAllText_Dynamic(newMap["name"] .. "/data_static/spawn_points.lua", spawnPoints)
 
 		if s.RespawnOnComplete then
@@ -148,7 +159,7 @@ function FinalizeMapFolder()
 end
 
 
----@param data UICallbackData
+---@param data TimerCallbackData
 function ReparseMap(data)
 	tm.playerUI.ClearUI(0)
 

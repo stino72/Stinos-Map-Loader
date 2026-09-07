@@ -2,8 +2,12 @@
 local spawnPoints = {}
 
 local spawnRadius = 6.5
+--[HEADER]~
 local header = "<b>- Teleport -"
+--END
+--[CREDIT]~
 local credit = "<b>Map made by ?"
+--END
 
 function SetSpawnPoints()
 	local sp = json.parse(tm.os.ReadAllText_Static("spawn_points.json"))
@@ -47,15 +51,17 @@ end
 
 ---@param player ModPlayer
 function OnPlayerJoined(player)
+--[HEADER]~
 	tm.playerUI.AddUILabel(player.playerId, 0, header)
+--END
 	tm.players.SetPlayerIsInvincible(player.playerId, true)
 
 	for index, value in ipairs(spawnPoints) do
 		tm.playerUI.AddUIButton(player.playerId, value, value, OnTeleportButtonPressed, value)
 	end
-
+--[CREDIT]~
 	tm.playerUI.AddUILabel(player.playerId, 0, credit)
-
+--END
 	tm.players.SetPlayerSpawnLocation(player.playerId, spawnPoints[1])
 	tm.players.TeleportPlayerToSpawnPoint(player.playerId, spawnPoints[1], true)
 end

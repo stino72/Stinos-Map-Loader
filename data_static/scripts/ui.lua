@@ -19,9 +19,9 @@ ToggleButtonData.__index = ToggleButtonData
 ---@return string
 function GetToggleString(state)
 	if state then
-		return " [<color=green>True</color>]"
+		return " <b>[<color=green>True</color>]"
 	else
-		return " [<color=red>False</color>]"
+		return " <b>[<color=red>False</color>]"
 	end
 end
 
@@ -47,7 +47,7 @@ function OnToggleButtonPressed(data)
 	---@type ToggleButtonData
 	local buttonData = data.data
 
-	local newState = string.find(data.value, " [<color=green>True</color>]", 0, true) == nil
+	local newState = string.find(data.value, " <b>[<color=green>True</color>]", 0, true) == nil
 	tm.playerUI.SetUIValue(data.playerId, data.id, buttonData.text .. GetToggleString(newState))
 
 	---@type ToggleCallbackData
