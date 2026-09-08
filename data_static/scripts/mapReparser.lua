@@ -90,6 +90,11 @@ function GetMaterial()
 
     if textureIndex > #newMap["custom textures"] then
         tm.playerUI.ClearUI(0)
+		if s.newSpawnPoints then
+			LoadMap(newMap)
+			SetupSpawnPoints(newMap)
+			return
+		end
 		tm.playerUI.AddUILabel(0, "l", "Finalizing map...")
 		tm.playerUI.AddUILabel(0, "i", "map will be saved to")
 		tm.playerUI.AddUILabel(0, "i", "data_dynamic/" .. newMap["name"] .. "/")
@@ -169,12 +174,10 @@ function ReparseMap(data)
 
     newMap["name"] = map["Name"]
 
-	if not s.newSpawnPoints then
-		newMap["spawn"] = {}
-		newMap["spawn"]["p"] = map["SpawnpointInfo"]["P"]
-		newMap["spawn"]["p"].y = newMap["spawn"]["p"].y + heightOffSet
-		newMap["spawn"]["r"] = map["SpawnpointInfo"]["R"]
-	end
+	newMap["spawn"] = {}
+	newMap["spawn"]["p"] = map["SpawnpointInfo"]["P"]
+	newMap["spawn"]["p"].y = newMap["spawn"]["p"].y + heightOffSet
+	newMap["spawn"]["r"] = map["SpawnpointInfo"]["R"]
 
     newMap["custom meshes"] = {}
     newMap["custom textures"] = {}

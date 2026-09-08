@@ -3,6 +3,8 @@ tm.os.DoFile("libraries/debug")
 tm.os.DoFile("libraries/timer")
 tm.os.DoFile("scripts/preprocessor")
 tm.os.DoFile("scripts/ui")
+tm.os.DoFile("scripts/internal_map_loader")
+tm.os.DoFile("scripts/spawnPointSetup")
 
 ---@type ReparserSettings
 local settings = NewReparserSettings()
@@ -11,6 +13,7 @@ tm.os.SetModTargetDeltaTime(1/60)
 
 function update()
 	timer.UpdateTimers()
+	Update_map_loader()
 end
 
 ---@param player ModPlayer
