@@ -39,7 +39,9 @@ function LoadMap(map)
 	isLoading = true
 	spawn = map["spawn"]
 
-	objectBuffer = map["objects"]
+	for index, o in ipairs(map["objects"]) do
+		table.insert(objectBuffer, index, o)
+	end
 
 	material = map["materials"]
 

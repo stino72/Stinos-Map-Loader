@@ -39,9 +39,6 @@ function NewReparserSettings()
 	return instance
 end
 
----@type ReparserSettings
-local s = NewReparserSettings()
-
 ---@type table
 local newMap = {}
 
@@ -90,7 +87,7 @@ function GetMaterial()
 
     if textureIndex > #newMap["custom textures"] then
         tm.playerUI.ClearUI(0)
-		if s.newSpawnPoints then
+		if SETTINGS.newSpawnPoints then
 			LoadMap(newMap)
 			SetupSpawnPoints(newMap)
 			return
@@ -122,38 +119,38 @@ function FinalizeMapFolder()
 	local loader = tm.os.ReadAllText_Static("scripts/mapLoader.lua")
 	local flags = {}
 
-	if s.newSpawnPoints then
+	if SETTINGS.newSpawnPoints then
 		table.insert(flags, "SPAWN")
 		local spawn_flag = {}
 
 		local spawnPoints = tm.os.ReadAllText_Static("scripts/spawn_points.lua")
-		spawnPoints = SetVariable(spawnPoints, "spawnRadius", s.spawnRadius)
-		if s.spawnMenuHeader != "" then
+		spawnPoints = SetVariable(spawnPoints, "spawnRadius", SETTINGS.spawnRadius)
+		if SETTINGS.spawnMenuHeader != "" then
 			table.insert(spawn_flag, "HEADER")
-			spawnPoints = SetVariable(spawnPoints, "header", '"' .. s.spawnMenuHeader .. '"')
+			spawnPoints = SetVariable(spawnPoints, "header", '"' .. SETTINGS.spawnMenuHeader .. '"')
 		end
-		if s.credit != "" then
+		if SETTINGS.credit != "" then
 			table.insert(spawn_flag, "CREDIT")
-			spawnPoints = SetVariable(spawnPoints, "credit", '"' .. s.credit .. '"')
+			spawnPoints = SetVariable(spawnPoints, "credit", '"' .. SETTINGS.credit .. '"')
 		end
 		spawnPoints = ResolveMarcos(spawnPoints, spawn_flag)
 		tm.os.WriteAllText_Dynamic(newMap["name"] .. "/data_static/spawn_points.lua", spawnPoints)
 
-		if s.RespawnOnComplete then
+		if SETTINGS.RespawnOnComplete then
 			table.insert(flags, "RESPAWN")
 		end
 	end
 
-	if s.zeroG then
+	if SETTINGS.zeroG then
 		table.insert(flags, "ZEROG")
 	end
 
-	if s.defaultTimeOfDay >= 0 and s.defaultTimeOfDay <= 100 then
+	if SETTINGS.defaultTimeOfDay >= 0 and SETTINGS.defaultTimeOfDay <= 100 then
 		table.insert(flags, "TIME")
-		loader = SetVariable(loader, "time", s.defaultTimeOfDay)
+		loader = SetVariable(loader, "time", SETTINGS.defaultTimeOfDay)
 	end
 
-	if s.progressBar then
+	if SETTINGS.progressBar then
 		table.insert(flags, "LOAD")
 	end
 
@@ -167,8 +164,6 @@ end
 ---@param data TimerCallbackData
 function ReparseMap(data)
 	tm.playerUI.ClearUI(0)
-
-	s = data.data
 
     local map = json.parse(tm.os.ReadAllText_Static("map"))
 

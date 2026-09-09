@@ -6,8 +6,31 @@ tm.os.DoFile("scripts/ui")
 tm.os.DoFile("scripts/internal_map_loader")
 tm.os.DoFile("scripts/spawnPointSetup")
 
+---@class MapSave
+---@field reparserSettings ReparserSettings
+---@field spawnPoints SpawnPointData[]
+local MapSave = {}
+MapSave.__index = MapSave
+
+---@return MapSave[]
+function GetSaveFile()
+	local s = tm.os.ReadAllText_Dynamic("settings.json")
+	if s == "" then
+		return {}
+	end
+	return json.parse(s)
+end
+
+---@type MapSave[]
+SAVE_FILE = GetSaveFile()
+
+MAP = json.parse(tm.os.ReadAllText_Static("map"))
+
+---@type string
+MAP_NAME = MAP["Name"]
+
 ---@type ReparserSettings
-local settings = NewReparserSettings()
+SETTINGS = NewReparserSettings()
 
 tm.os.SetModTargetDeltaTime(1/60)
 
@@ -22,8 +45,14 @@ function OnPlayerJoined(player)
 		return
 	end
 
+	tm.os.Log(MAP_NAME)
+	if SAVE_FILE[MAP_NAME] then
+		SETTINGS = SAVE_FILE[MAP_NAME].reparserSettings
+	else
+		SAVE_FILE[MAP_NAME] = setmetatable({}, MapSave)
+	end
+
 	tm.playerUI.AddUIButton(0, "reparser", "Create Map", CreateMap)
-	tm.playerUI.AddUIButton(0, "spawn", "Setup Spawn Points", SetupSpawn)
 	tm.playerUI.AddUIButton(0, "merger", "Merge Maps", MergeMaps)
 end
 
@@ -38,28 +67,28 @@ function CreateMap()
 	tm.playerUI.AddUILabel(0, 0, "<align=left>dont respawn inside each other")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>in mulitplayer")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>trailmappers behavour: [False]")
-	AddToggleButton(0, "spawnPoints", "Advanced Spawn Points", settings.newSpawnPoints, UseNewSpawnPoints)
-	if settings.newSpawnPoints then
+	AddToggleButton(0, "spawnPoints", "Advanced Spawn Points", SETTINGS.newSpawnPoints, UseNewSpawnPoints)
+	if SETTINGS.newSpawnPoints then
 		tm.playerUI.AddUILabel(0, 0, "<align=left>if true respawns the player when")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>the map finished loading")
-		AddToggleButton(0, "respawnOnComplete", "respawn on complete", settings.RespawnOnComplete, SetToggleSetting, "RespawnOnComplete")
+		AddToggleButton(0, "respawnOnComplete", "respawn on complete", SETTINGS.RespawnOnComplete, SetToggleSetting, "RespawnOnComplete")
 		tm.playerUI.AddUILabel(0, 0, "<align=left> Spawn Point Radius (m)")
-		tm.playerUI.AddUIText(0, "spawnRadius", settings.spawnRadius, SetNumberSetting, "spawnRadius")
+		tm.playerUI.AddUIText(0, "spawnRadius", SETTINGS.spawnRadius, SetNumberSetting, "spawnRadius")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>Teleport Menu Header")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>Leave empty to hide")
-		tm.playerUI.AddUIText(0, "spawnMenuHeader", settings.spawnMenuHeader, SetTextSetting, "spawnMenuHeader")
+		tm.playerUI.AddUIText(0, "spawnMenuHeader", SETTINGS.spawnMenuHeader, SetTextSetting, "spawnMenuHeader")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>Teleport Menu credit")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>Leave empty to hide")
-		tm.playerUI.AddUIText(0, "credit", settings.credit, SetTextSetting, "credit")
+		tm.playerUI.AddUIText(0, "credit", SETTINGS.credit, SetTextSetting, "credit")
 		tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
 	end
 
 	tm.playerUI.AddUILabel(0, 0, "<align=left>If true enables 0g while loading")
-	AddToggleButton(0, "0gloader", "0g loading", settings.zeroG, SetToggleSetting, "zeroG")
+	AddToggleButton(0, "0gloader", "0g loading", SETTINGS.zeroG, SetToggleSetting, "zeroG")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>default Time Of day, -1 to disable")
-	tm.playerUI.AddUIText(0, "timeOfDay", settings.defaultTimeOfDay, SetNumberSetting, "defaultTimeOfDay")
+	tm.playerUI.AddUIText(0, "timeOfDay", SETTINGS.defaultTimeOfDay, SetNumberSetting, "defaultTimeOfDay")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>If true shows a loading bar")
-	AddToggleButton(0, "progressbar", "use progress bar", settings.progressBar, SetToggleSetting, "progressBar")
+	AddToggleButton(0, "progressbar", "use progress bar", SETTINGS.progressBar, SetToggleSetting, "progressBar")
 
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
 	tm.playerUI.AddUIButton(0, "reparse", "Create", SetupReparser)
@@ -68,24 +97,26 @@ end
 function SetupReparser()
 	tm.playerUI.ClearUI(0)
 	tm.playerUI.AddUILabel(0, "l", "Loading material setup...")
-	timer.Create(0.02, ReparseMap, settings)
+	SAVE_FILE[MAP_NAME].reparserSettings = SETTINGS
+	tm.os.WriteAllText_Dynamic("settings.json", json.serialize(SAVE_FILE))
+	timer.Create(0.02, ReparseMap)
 end
 
 ---@param data ToggleCallbackData
 function UseNewSpawnPoints(data)
-	settings.newSpawnPoints = data.state
+	SETTINGS.newSpawnPoints = data.state
 	CreateMap()
 end
 
 ---@param data ToggleCallbackData
 function SetToggleSetting(data)
-	settings[data.data] = data.state
+	SETTINGS[data.data] = data.state
 end
 
 ---@param data UICallbackData
 function SetTextSetting(data)
 	Print(data.value)
-	settings[data.data] = data.value
+	SETTINGS[data.data] = data.value
 end
 
 ---@param data UICallbackData
@@ -94,11 +125,7 @@ function SetNumberSetting(data)
 	if n == nil then
 		return
 	end
-	settings[data.data] = n
-end
-
-function SetupSpawn()
-	
+	SETTINGS[data.data] = n
 end
 
 function MergeMaps()

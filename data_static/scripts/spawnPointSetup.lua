@@ -27,7 +27,7 @@ function SpawnPointDataNewV(name, position, rotation)
 	local instance = setmetatable({}, SpawnPointData)
 
 	instance.name = name
-	instance.position = position
+	instance.position = TableToVector(position)
 	instance.rotation = math.atan2(rotation.x, rotation.y) / math.pi * 180
 
 	return instance
@@ -46,10 +46,24 @@ local spawnPointMakers = {}
 ---@type ModGameObject
 local arrow
 
+local mapName = ""
+
 ---@param map table
 function SetupSpawnPoints(map)
-	local s = SpawnPointDataNewV(map["name"], map["spawn"]["p"], map["spawn"]["r"])
-	table.insert(SpawnPoints, s)
+	if not SAVE_FILE[MAP_NAME].spawnPoints then
+		local s = SpawnPointDataNewV(map["name"], map["spawn"]["p"], map["spawn"]["r"])
+		table.insert(SpawnPoints, s)
+	else
+		for index, spawn in ipairs(SAVE_FILE[MAP_NAME].spawnPoints) do
+			---@type SpawnPointData
+			local s = {
+				name = spawn.name,
+				position = TableToVector(spawn.position),
+				rotation = spawn.rotation
+			}
+			table.insert(SpawnPoints, s)
+		end
+	end
 
 	for i = 1, 8, 1 do
 		local m = tm.physics.SpawnObject(tm.vector3.Create(), "PFB_Beacon")
@@ -59,6 +73,7 @@ function SetupSpawnPoints(map)
 	tm.physics.AddMesh("data_static/assets/arrow.obj", "spawnpointarrow")
 	arrow = tm.physics.SpawnCustomObject(tm.vector3.Create(), "spawnpointarrow", "")
 
+	mapName = map["name"]
 	LoadSpawnPointConfigureUi()
 end
 
@@ -68,41 +83,42 @@ function LoadSpawnPointConfigureUi()
 
 	ShowSpawnPointMakers()
 
+	tm.playerUI.AddUILabel(0, 0, current .. "/" .. #SpawnPoints)
 	tm.playerUI.AddUIButton(0, "tp", "teleport to spawn point", TeleportToSpawn)
 	tm.playerUI.AddUIButton(0, "move", "move to player", MoveToPlayer)
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
 	tm.playerUI.AddUILabel(0, 0, "name")
-	tm.playerUI.AddUIText(0, "name", s.name, NULL)
+	tm.playerUI.AddUIText(0, "name", s.name, SetName)
 	tm.playerUI.AddUILabel(0, 0, "pos x y z")
-	tm.playerUI.AddUIText(0, "x", s.position.x, NULL)
-	tm.playerUI.AddUIText(0, "y", s.position.y, NULL)
-	tm.playerUI.AddUIText(0, "z", s.position.z, NULL)
+	tm.playerUI.AddUIText(0, "x", s.position.x, SetPosition, "x")
+	tm.playerUI.AddUIText(0, "y", s.position.y, SetPosition, "y")
+	tm.playerUI.AddUIText(0, "z", s.position.z, SetPosition, "z")
 	tm.playerUI.AddUILabel(0, 0, "rotation")
-	tm.playerUI.AddUIText(0, "r", s.rotation, NULL)
+	tm.playerUI.AddUIText(0, "r", s.rotation, SetRotation)
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
 	if current < #SpawnPoints then
-		tm.playerUI.AddUIButton(0, "next", "> next >", Next, 1)
+		tm.playerUI.AddUIButton(0, "next", "> Next >", Next, 1)
 	end
 	if current > 1 then
-		tm.playerUI.AddUIButton(0, "previous", "< previous <", Next, -1)
+		tm.playerUI.AddUIButton(0, "previous", "< Previous <", Next, -1)
 	end
 
-	tm.playerUI.AddUIButton(0, "new", "+ new +", Add)
+	tm.playerUI.AddUIButton(0, "new", "+ New +", Add)
 	if #SpawnPoints > 1 then
-		tm.playerUI.AddUIButton(0, "remove", "- remove -", Remove)
+		tm.playerUI.AddUIButton(0, "remove", "- Remove -", Remove)
 	end
+	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
+	tm.playerUI.AddUIButton(0, "save", "Save Spawn Points", SaveSpawnPoints)
 end
 
--- TODO: correct of spawn point rotation
--- TODO: read the spawn point radius
 function ShowSpawnPointMakers()
 	---@type ModVector3
-	local spawnPos = TableToVector(SpawnPoints[current].position)
+	local spawnPos = SpawnPoints[current].position
 	arrow.GetTransform().SetPosition(spawnPos + tm.vector3.Create(0, 0.1, 0))
 	arrow.GetTransform().SetRotation(0, SpawnPoints[current].rotation - 90, 0)
 	arrow.SetIsTrigger(true)
 	for i = 0, 7, 1 do
-		local pos = spawnPos + CreateDirectionVector(i * 45) * 6.5
+		local pos = spawnPos + CreateDirectionVector(i * 45 + SpawnPoints[current].rotation) * 6.5
 		spawnPointMakers[i + 1].GetTransform().SetPosition(pos)
 	end
 end
@@ -139,6 +155,64 @@ end
 function TeleportToSpawn(data)
 	tm.players.GetPlayerTransform(0).SetPosition(SpawnPoints[current].position)
 	tm.players.GetPlayerTransform(0).SetRotation(0, SpawnPoints[current].rotation, 0)
+end
+
+---@param data UICallbackData
+function SetName(data)
+	SpawnPoints[current].name = data.value
+end
+
+---@param data UICallbackData
+function SetRotation(data)
+	if data.value == "" or data.value == "." or data.value == "-" then
+		SpawnPoints[current].rotation = 0
+		ShowSpawnPointMakers()
+		return
+	end
+	local n = tonumber(data.value)
+	if n == nil then
+		tm.playerUI.SetUIValue(0, data.id, SpawnPoints[current].rotation)
+		return
+	end
+	SpawnPoints[current].rotation = n
+	ShowSpawnPointMakers()
+end
+
+---@param data UICallbackData
+function SetPosition(data)
+	if data.value == "" or data.value == "." or data.value == "-" then
+		SpawnPoints[current].position[data.data] = 0
+		ShowSpawnPointMakers()
+		return
+	end
+	local n = tonumber(data.value)
+	if n == nil then
+		tm.playerUI.SetUIValue(0, data.id, SpawnPoints[current].position[data.data])
+		return
+	end
+	SpawnPoints[current].position[data.data] = n
+	ShowSpawnPointMakers()
+end
+
+---@param data UICallbackData
+function SaveSpawnPoints(data)
+	local spawns = {}
+	for index, spawn in ipairs(SpawnPoints) do
+		local s = {}
+		s["name"] = spawn.name
+		s["position"] = {}
+		s["position"]["x"] = spawn.position.x
+		s["position"]["y"] = spawn.position.y
+		s["position"]["z"] = spawn.position.z
+		s["rotation"] = spawn.rotation
+
+		table.insert(spawns, s)
+	end
+	SAVE_FILE[MAP_NAME].spawnPoints = spawns
+	tm.os.WriteAllText_Dynamic("settings.json", json.serialize(SAVE_FILE))
+	tm.os.WriteAllText_Dynamic(mapName .. "/data_static/spawn_points.json", json.serialize(spawns))
+	tm.playerUI.ClearUI(0)
+	FinalizeMapFolder()
 end
 
 function NULL()
