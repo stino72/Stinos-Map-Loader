@@ -121,8 +121,13 @@ end
 
 ---@param data UICallbackData
 function SetNumberSetting(data)
+	if data.value == "" or data.value == "." or data.value == "-" then
+		SETTINGS[data.data] = 0
+		return
+	end
 	local n = tonumber(data.value)
 	if n == nil then
+		tm.playerUI.SetUIValue(0, data.id, SETTINGS[data.data])
 		return
 	end
 	SETTINGS[data.data] = n

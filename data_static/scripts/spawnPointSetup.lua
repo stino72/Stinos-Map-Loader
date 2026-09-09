@@ -83,19 +83,22 @@ function LoadSpawnPointConfigureUi()
 
 	ShowSpawnPointMakers()
 
-	tm.playerUI.AddUILabel(0, 0, current .. "/" .. #SpawnPoints)
-	tm.playerUI.AddUIButton(0, "tp", "teleport to spawn point", TeleportToSpawn)
-	tm.playerUI.AddUIButton(0, "move", "move to player", MoveToPlayer)
+	tm.playerUI.AddUILabel(0, 0, "<align=left> Spawn Point Radius (m)")
+	tm.playerUI.AddUIText(0, "spawnRadius", SETTINGS.spawnRadius, SetRadius)
+	tm.playerUI.AddUIButton(0, "tp", "Teleport to Spawn Point", TeleportToSpawn)
+	tm.playerUI.AddUIButton(0, "move", "Move to Player", MoveToPlayer)
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
-	tm.playerUI.AddUILabel(0, 0, "name")
+	tm.playerUI.AddUILabel(0, 0, "Spawn Point Name")
 	tm.playerUI.AddUIText(0, "name", s.name, SetName)
-	tm.playerUI.AddUILabel(0, 0, "pos x y z")
+	tm.playerUI.AddUILabel(0, 0, "Position: x y z")
 	tm.playerUI.AddUIText(0, "x", s.position.x, SetPosition, "x")
 	tm.playerUI.AddUIText(0, "y", s.position.y, SetPosition, "y")
 	tm.playerUI.AddUIText(0, "z", s.position.z, SetPosition, "z")
-	tm.playerUI.AddUILabel(0, 0, "rotation")
+	tm.playerUI.AddUILabel(0, 0, "Rotation")
 	tm.playerUI.AddUIText(0, "r", s.rotation, SetRotation)
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
+
+	tm.playerUI.AddUILabel(0, 0, "Spawn Point: " .. current .. "/" .. #SpawnPoints)
 	if current < #SpawnPoints then
 		tm.playerUI.AddUIButton(0, "next", "> Next >", Next, 1)
 	end
@@ -118,7 +121,7 @@ function ShowSpawnPointMakers()
 	arrow.GetTransform().SetRotation(0, SpawnPoints[current].rotation - 90, 0)
 	arrow.SetIsTrigger(true)
 	for i = 0, 7, 1 do
-		local pos = spawnPos + CreateDirectionVector(i * 45 + SpawnPoints[current].rotation) * 6.5
+		local pos = spawnPos + CreateDirectionVector(i * 45 + SpawnPoints[current].rotation) * SETTINGS.spawnRadius
 		spawnPointMakers[i + 1].GetTransform().SetPosition(pos)
 	end
 end
@@ -195,6 +198,22 @@ function SetPosition(data)
 end
 
 ---@param data UICallbackData
+function SetRadius(data)
+	if data.value == "" or data.value == "." or data.value == "-" then
+		SETTINGS.spawnRadius = 0
+		ShowSpawnPointMakers()
+		return
+	end
+	local n = tonumber(data.value)
+	if n == nil then
+		tm.playerUI.SetUIValue(0, data.id, SETTINGS.spawnRadius)
+		return
+	end
+	SETTINGS.spawnRadius = n
+	ShowSpawnPointMakers()
+end
+
+---@param data UICallbackData
 function SaveSpawnPoints(data)
 	local spawns = {}
 	for index, spawn in ipairs(SpawnPoints) do
@@ -208,6 +227,7 @@ function SaveSpawnPoints(data)
 
 		table.insert(spawns, s)
 	end
+	SAVE_FILE[MAP_NAME].reparserSettings = SETTINGS
 	SAVE_FILE[MAP_NAME].spawnPoints = spawns
 	tm.os.WriteAllText_Dynamic("settings.json", json.serialize(SAVE_FILE))
 	tm.os.WriteAllText_Dynamic(mapName .. "/data_static/spawn_points.json", json.serialize(spawns))

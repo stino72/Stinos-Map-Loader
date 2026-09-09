@@ -25,7 +25,7 @@ function SetSpawnPoints()
 		end
 
 		for i = 0, 7, 1 do
-			local pos = position + CreateDirectionVector(i * 45) * spawnRadius
+			local pos = position + CreateDirectionVector(i * 45 + rotation) * spawnRadius
 			tm.players.SetSpawnPoint(i, name, pos, rotation)
 		end
 
@@ -51,6 +51,9 @@ end
 
 ---@param player ModPlayer
 function OnPlayerJoined(player)
+	if #spawnPoints <= 1 then
+		return
+	end
 --[HEADER]~
 	tm.playerUI.AddUILabel(player.playerId, 0, header)
 --END
