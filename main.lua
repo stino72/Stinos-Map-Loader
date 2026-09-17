@@ -5,6 +5,7 @@ tm.os.DoFile("scripts/preprocessor")
 tm.os.DoFile("scripts/ui")
 tm.os.DoFile("scripts/internal_map_loader")
 tm.os.DoFile("scripts/spawnPointSetup")
+tm.os.DoFile("scripts/mapCombiner")
 
 ---@class MapSave
 ---@field reparserSettings ReparserSettings
@@ -58,6 +59,9 @@ end
 
 function CreateMap()
 	tm.playerUI.ClearUI(0)
+
+	tm.playerUI.AddUILabel(0, 0, "<b>Editing Map: ".. MAP_NAME)
+	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
 
 	tm.playerUI.AddUILabel(0, 0, "<align=left>Advanced Spawn Points Allows")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>for multiple Spawn point and")
@@ -134,7 +138,7 @@ function SetNumberSetting(data)
 end
 
 function MergeMaps()
-	
+	CombineMaps()
 end
 
 function NULL()

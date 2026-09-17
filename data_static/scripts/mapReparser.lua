@@ -260,7 +260,6 @@ function ReparseMap(data)
 
     SetupUI()
     GetMaterial()
-	Print("test")
 end
 
 
