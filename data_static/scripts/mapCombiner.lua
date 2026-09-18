@@ -1,7 +1,7 @@
 local copySpawnPoints = true
-local map_a = "test map"
-local map_b = "test map"
-local new_name = "combined map"
+local map_a = ""
+local map_b = ""
+local new_name = "Combined Map"
 
 local AMatch = false
 local BMatch = false
@@ -128,7 +128,6 @@ function SetupCombine()
 	mapA["materials"] = AppendTable(mapA["materials"], mapB["materials"])
 
 	for index, value in ipairs(mapB["objects"]) do
-		Print(value)
 		if index < mapB["custom objects physics indice"] then
 			value["i"]["modelId"] = value["i"]["modelId"] + meshes
 			value["i"]["textureId"] = value["i"]["textureId"] + textures
@@ -136,5 +135,35 @@ function SetupCombine()
 		table.insert(mapA["objects"], value)
 	end
 
-	tm.os.WriteAllText_Dynamic(new_name .. "/data_static/map.json", json.serialize(mapA))
+	mapA["custom objects indice"] = mapA["custom objects indice"] + mapB["custom objects indice"] - 1
+	mapA["custom objects collision indice"] = mapA["custom objects collision indice"] + mapB["custom objects collision indice"] - 1
+	mapA["custom objects physics indice"] = mapA["custom objects physics indice"] + mapB["custom objects physics indice"] - 1
+
+	tm.os.WriteAllText_Dynamic(new_name .. "/data_static/map.json", Encode(mapA))
+	tm.os.WriteAllText_Dynamic(new_name .. "/main.lua", tm.os.ReadAllText_Dynamic(map_a .. "/main.lua"))
+
+	local spawnPointLoader = tm.os.ReadAllText_Dynamic(map_a .. "/data_static/spawn_points.lua")
+	if spawnPointLoader == "" then
+		return
+	end
+
+	local spawnPointsA = tm.os.ReadAllText_Dynamic(map_a .. "/data_static/spawn_points.json")
+	if spawnPointsA == "" then
+		return
+	end
+
+	tm.os.WriteAllText_Dynamic(new_name .. "/data_static/spawn_points.lua", spawnPointLoader)
+	if copySpawnPoints == false then
+		tm.os.WriteAllText_Dynamic(new_name .. "/data_static/spawn_points.json", spawnPointsA)
+		return
+	end
+
+	local spawnPointsB = tm.os.ReadAllText_Dynamic(map_b .. "/data_static/spawn_points.json")
+	if spawnPointsB == "" then
+		tm.os.WriteAllText_Dynamic(new_name .. "/data_static/spawn_points.json", spawnPointsA)
+		return
+	end
+
+	local newSpawnPoints = AppendTable(json.parse(spawnPointsA), json.parse(spawnPointsB))
+	tm.os.WriteAllText_Dynamic(new_name .. "/data_static/spawn_points.json", json.serialize(newSpawnPoints))
 end

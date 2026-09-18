@@ -1,4 +1,1 @@
-Multiple Spawn Points
-Loading UI
 Wrong Map Warning
-Map Combiner
