@@ -53,7 +53,7 @@ function OnPlayerJoined(player)
 		SAVE_FILE[MAP_NAME] = setmetatable({}, MapSave)
 	end
 
-	tm.playerUI.AddUIButton(0, "reparser", "Create Map", CreateMap)
+	tm.playerUI.AddUIButton(0, "reparser", "Re-Export Map", CreateMap)
 	tm.playerUI.AddUIButton(0, "merger", "Merge Maps", MergeMaps)
 end
 
@@ -70,12 +70,11 @@ function CreateMap()
 	tm.playerUI.AddUILabel(0, 0, "<align=left>setup also makes sure players")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>dont respawn inside each other")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>in mulitplayer")
-	tm.playerUI.AddUILabel(0, 0, "<align=left>trailmappers behavour: [False]")
 	AddToggleButton(0, "spawnPoints", "Advanced Spawn Points", SETTINGS.newSpawnPoints, UseNewSpawnPoints)
 	if SETTINGS.newSpawnPoints then
-		tm.playerUI.AddUILabel(0, 0, "<align=left>if true respawns the player when")
+		tm.playerUI.AddUILabel(0, 0, "<align=left>If true respawns the player when")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>the map finished loading")
-		AddToggleButton(0, "respawnOnComplete", "respawn on complete", SETTINGS.RespawnOnComplete, SetToggleSetting, "RespawnOnComplete")
+		AddToggleButton(0, "respawnOnComplete", "Rrespawn on Complete", SETTINGS.RespawnOnComplete, SetToggleSetting, "RespawnOnComplete")
 		tm.playerUI.AddUILabel(0, 0, "<align=left> Spawn Point Radius (m)")
 		tm.playerUI.AddUIText(0, "spawnRadius", SETTINGS.spawnRadius, SetNumberSetting, "spawnRadius")
 		tm.playerUI.AddUILabel(0, 0, "<align=left>Teleport Menu Header")
@@ -88,14 +87,14 @@ function CreateMap()
 	end
 
 	tm.playerUI.AddUILabel(0, 0, "<align=left>If true enables 0g while loading")
-	AddToggleButton(0, "0gloader", "0g loading", SETTINGS.zeroG, SetToggleSetting, "zeroG")
-	tm.playerUI.AddUILabel(0, 0, "<align=left>default Time Of day, -1 to disable")
+	AddToggleButton(0, "0gloader", "0g Loading", SETTINGS.zeroG, SetToggleSetting, "zeroG")
+	tm.playerUI.AddUILabel(0, 0, "<align=left>Default Time of Day, -1 to disable")
 	tm.playerUI.AddUIText(0, "timeOfDay", SETTINGS.defaultTimeOfDay, SetNumberSetting, "defaultTimeOfDay")
 	tm.playerUI.AddUILabel(0, 0, "<align=left>If true shows a loading bar")
-	AddToggleButton(0, "progressbar", "use progress bar", SETTINGS.progressBar, SetToggleSetting, "progressBar")
+	AddToggleButton(0, "progressbar", "Show Progress Bar", SETTINGS.progressBar, SetToggleSetting, "progressBar")
 
 	tm.playerUI.AddUILabel(0, 0, "---------------------------------------------")
-	tm.playerUI.AddUIButton(0, "reparse", "Create", SetupReparser)
+	tm.playerUI.AddUIButton(0, "reparse", "Re-Export", SetupReparser)
 end
 
 function SetupReparser()
