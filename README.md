@@ -15,15 +15,14 @@
 12. Load the map
 
 ## Export Settings:
-**Advanced Spawn Points:** Allows for multiple Spawn point and enables an teleportation menu when more then 1 Spawn Point is setup. 
-    Also makes sure players dont respawn inside each other in mulitplayer
-    **Respawn On Complete:** if true respawns all players when the Map finishes Loading
-    **Spawn Point Radius(m):** distance the multiplayer spawn points are away from the center
-    **Teleport Menu Header:** text shown at the top of the teleport menu, leave empty to hide
-    **Teleport Menu Credit:** text shown at the bottom of the teleport menu, leave empty to hide
-**0g Loading:** If true the player will be put in 0g while the map is loading
-**Default Time of Day:** Sets the time of day when the map is loaded, set to -1 to disable
-**Show Progress Bar:** If true shows a progress bar of how many object are loaded and still need to be loaded
+**Advanced Spawn Points:** Allows for multiple Spawn point and enables an teleportation menu when more then 1 Spawn Point is setup. Also makes sure players dont respawn inside each other in mulitplayer<br>
+    **Respawn On Complete:** if true respawns all players when the Map finishes Loading<br>
+    **Spawn Point Radius(m):** distance the multiplayer spawn points are away from the center<br>
+    **Teleport Menu Header:** text shown at the top of the teleport menu, leave empty to hide<br>
+    **Teleport Menu Credit:** text shown at the bottom of the teleport menu, leave empty to hide<br>
+**0g Loading:** If true the player will be put in 0g while the map is loading<br>
+**Default Time of Day:** Sets the time of day when the map is loaded, set to -1 to disable<br>
+**Show Progress Bar:** If true shows a progress bar of how many object are loaded and still need to be loaded<br>
 
 ## Combine Maps:
 1. Re-Export both Map A and Map B
