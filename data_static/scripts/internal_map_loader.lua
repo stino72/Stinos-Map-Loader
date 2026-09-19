@@ -64,7 +64,7 @@ end
 ---@param meshes table
 function LoadMeshes(meshes)
 	for index, mesh in ipairs(meshes) do
-		tm.physics.AddMesh("assets/" .. mesh, "m" .. tostring(index))
+		tm.physics.AddMesh(mesh, "m" .. tostring(index))
 	end
 end
 
@@ -72,7 +72,7 @@ end
 ---@param textures table
 function LoadTextures(textures)
 	for index, texture in ipairs(textures) do
-		tm.physics.AddTexture("assets/" .. texture, "t" .. tostring(index))
+		tm.physics.AddTexture(texture, "t" .. tostring(index))
 	end
 end
 

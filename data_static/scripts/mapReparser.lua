@@ -105,7 +105,7 @@ function GetMaterial()
     tm.playerUI.SetUIValue(0, "Progress", tostring(textureIndex) .. "/" .. tostring(#newMap["custom textures"]))
 
     local PlayerPos = tm.players.GetPlayerTransform(0).GetPositionWorld()
-    tm.physics.AddTexture("assets/" .. newMap["custom textures"][textureIndex], tostring(textureIndex))
+    tm.physics.AddTexture(newMap["custom textures"][textureIndex], tostring(textureIndex))
     local obj = tm.physics.SpawnCustomObject(PlayerPos + tm.vector3.Create(0, 5, 0), "", tostring(textureIndex))
     obj.GetTransform().SetScale(3)
     obj.SetIsTrigger(true)

@@ -121,19 +121,54 @@ function SetupCombine()
 
 	local meshes = #mapA["custom meshes"]
 	local textures = #mapA["custom textures"]
-	Print(meshes, textures)
 
 	mapA["custom meshes"] = AppendTable(mapA["custom meshes"], mapB["custom meshes"])
 	mapA["custom textures"] = AppendTable(mapA["custom textures"], mapB["custom textures"])
 	mapA["materials"] = AppendTable(mapA["materials"], mapB["materials"])
 
-	for index, value in ipairs(mapB["objects"]) do
-		if index < mapB["custom objects physics indice"] then
-			value["i"]["modelId"] = value["i"]["modelId"] + meshes
-			value["i"]["textureId"] = value["i"]["textureId"] + textures
-		end
-		table.insert(mapA["objects"], value)
+	local new_objects = {}
+	for i = 1, mapA["custom objects indice"] - 1, 1 do
+		table.insert(new_objects, mapA["objects"][i])
 	end
+
+	for i = 1, mapB["custom objects indice"] - 1, 1 do
+		local obj = mapB["objects"][i]
+		obj["i"]["modelId"] = obj["i"]["modelId"] + meshes
+		obj["i"]["textureId"] = obj["i"]["textureId"] + textures
+		table.insert(new_objects, obj)
+	end
+
+	for i = mapA["custom objects indice"], mapA["custom objects collision indice"] - 1, 1 do
+		table.insert(new_objects, mapA["objects"][i])
+	end
+
+	for i = mapB["custom objects indice"], mapB["custom objects collision indice"] - 1, 1 do
+		local obj = mapB["objects"][i]
+		obj["i"]["modelId"] = obj["i"]["modelId"] + meshes
+		obj["i"]["textureId"] = obj["i"]["textureId"] + textures
+		table.insert(new_objects, obj)
+	end
+
+	for i = mapA["custom objects collision indice"], mapA["custom objects physics indice"] - 1, 1 do
+		table.insert(new_objects, mapA["objects"][i])
+	end
+
+	for i = mapB["custom objects collision indice"], mapB["custom objects physics indice"] - 1, 1 do
+		local obj = mapB["objects"][i]
+		obj["i"]["modelId"] = obj["i"]["modelId"] + meshes
+		obj["i"]["textureId"] = obj["i"]["textureId"] + textures
+		table.insert(new_objects, obj)
+	end
+
+	for i = mapA["custom objects physics indice"], #mapA["objects"], 1 do
+		table.insert(new_objects, mapA["objects"][i])
+	end
+
+	for i = mapB["custom objects physics indice"], #mapB["objects"], 1 do
+		table.insert(new_objects, mapB["objects"][i])
+	end
+
+	mapA["objects"] = new_objects
 
 	mapA["custom objects indice"] = mapA["custom objects indice"] + mapB["custom objects indice"] - 1
 	mapA["custom objects collision indice"] = mapA["custom objects collision indice"] + mapB["custom objects collision indice"] - 1
